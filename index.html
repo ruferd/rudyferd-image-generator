@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Rudyferd AI Image Generator</title>
-  <script src="https://puter.com"></script>
   <style>
     body { font-family: sans-serif; max-width: 500px; margin: 20px auto; padding: 15px; background: #121212; color: #fff; text-align: center; }
     .kotak-upload { background: #1e1e1e; padding: 12px; border-radius: 8px; margin-bottom: 12px; text-align: left; font-size: 14px; }
@@ -30,10 +29,27 @@
 
   <textarea id="prompt" placeholder="Ketik deskripsi... (Contoh: kucing astronot di bulan, atau ubah foto ini menjadi anime)"></textarea>
   <button id="btn" onclick="buatGambar()">Buat Gambar</button>
-  <div id="status"></div>
+  <div id="status">Memuat mesin AI...</div>
   <div id="wadah-gambar"></div>
 
   <script>
+    function muatPuter() {
+      return new Promise((resolve, reject) => {
+        if (window.puter) return resolve(window.puter);
+        const s = document.createElement('script');
+        s.src = 'https://puter.com';
+        s.onload = () => resolve(window.puter);
+        s.onerror = () => reject(new Error('Server ://puter.com diblokir oleh jaringan/DNS HP Anda.'));
+        document.head.appendChild(s);
+      });
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      muatPuter()
+        .then(() => { document.getElementById('status').innerText = 'Siap digunakan.'; })
+        .catch(err => { document.getElementById('status').innerText = err.message; });
+    });
+
     function tampilkanPratinjau() {
       const input = document.getElementById('fileGambar');
       const file = input.files.item(0);
@@ -77,10 +93,13 @@
       const wadah = document.getElementById('wadah-gambar');
       
       btn.disabled = true;
-      status.innerText = 'Sedang memproses gambar (sekitar 10-20 detik)...';
+      status.innerText = 'Menghubungkan ke server AI...';
       wadah.innerHTML = '';
 
       try {
+        await muatPuter();
+        status.innerText = 'Sedang memproses gambar (sekitar 10-20 detik)...';
+
         const opsi = { model: 'gpt-image-1' };
         if (file) {
           status.innerText = 'Membaca foto acuan & memproses gambar...';
@@ -101,4 +120,5 @@
   </script>
 </body>
 </html>
+
 
