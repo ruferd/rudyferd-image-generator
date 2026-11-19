@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Image Generator & Editor</title>
+  <script src="https://puter.com"></script>
+  <style>
+    body { font-family: sans-serif; max-width: 500px; margin: 20px auto; padding: 15px; background: #121212; color: #fff; text-align: center; }
+    .kotak-upload { background: #1e1e1e; padding: 12px; border-radius: 8px; margin-bottom: 12px; text-align: left; font-size: 14px; }
+    input[type="file"] { width: 100%; margin-top: 8px; color: #ccc; }
+    #pratinjau { max-width: 150px; margin-top: 10px; border-radius: 6px; display: none; }
+    textarea { width: 100%; height: 90px; padding: 10px; border-radius: 8px; border: none; font-size: 16px; box-sizing: border-box; }
+    button { width: 100%; padding: 12px; margin-top: 10px; background: #ff9d00; color: #000; font-weight: bold; font-size: 16px; border: none; border-radius: 8px; cursor: pointer; }
+    button:disabled { background: #555; color: #aaa; }
+    .btn-hapus { background: #333; color: #fff; font-size: 12px; padding: 6px 10px; width: auto; margin-top: 8px; display: none; }
+    #wadah-gambar img { width: 100%; margin-top: 15px; border-radius: 8px; }
+    #status { margin-top: 10px; font-size: 14px; color: #bbb; }
+  </style>
+</head>
+<body>
+  <h2>AI Image Generator</h2>
+
+  <div class="kotak-upload">
+    <label for="fileGambar"><strong>Gambar Acuan (Opsional):</strong></label>
+    <input type="file" id="fileGambar" accept="image/*" onchange="tampilkanPratinjau()" />
+    <img id="pratinjau" alt="Pratinjau Gambar" />
+    <button type="button" id="btnHapus" class="btn-hapus" onclick="hapusGambar()">Hapus Gambar Acuan</button>
+  </div>
+
+  <textarea id="prompt" placeholder="Ketik deskripsi... (Contoh: kucing astronot di bulan, atau ubah foto ini menjadi anime)"></textarea>
+  <button id="btn" onclick="buatGambar()">Buat Gambar</button>
+  <div id="status"></div>
+  <div id="wadah-gambar"></div>
+
+  <script>
+    function tampilkanPratinjau() {
+      const input = document.getElementById('fileGambar');
+      const pratinjau = document.getElementById('pratinjau');
+      const btnHapus = document.getElementById('btnHapus');
+      
+      if (input.files && input.files) {
+        pratinjau.src = URL.createObjectURL(input.files);
+        pratinjau.style.display = 'block';
+        btnHapus.style.display = 'inline-block';
+      }
+    }
+
+    function hapusGambar() {
+      document.getElementById('fileGambar').value = '';
+      document.getElementById('pratinjau').style.display = 'none';
+      document.getElementById('btnHapus').style.display = 'none';
+    }
+
+    function fileKeBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(','));
+        reader.onerror = error => reject(error);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function buatGambar() {
+      const prompt = document.getElementById('prompt').value.trim();
+      if (!prompt) return alert('Isi deskripsi gambar dulu!');
+      
+      const fileInput = document.getElementById('fileGambar');
+      const btn = document.getElementById('btn');
+      const status = document.getElementById('status');
+      const wadah = document.getElementById('wadah-gambar');
+      
+      btn.disabled = true;
+      status.innerText = 'Sedang memproses gambar (sekitar 10-20 detik)...';
+      wadah.innerHTML = '';
+
+      try {
+        const opsi = { model: 'gpt-image-1' };
+        if (fileInput.files && fileInput.files) {
+          status.innerText = 'Membaca foto acuan & memproses gambar...';
+          const base64Data = await fileKeBase64(fileInput.files);
+          opsi.input_image = base64Data;
+          opsi.input_image_mime_type = fileInput.files.type || 'image/jpeg';
+        }
+
+        const gambar = await puter.ai.txt2img(prompt, opsi);
+        wadah.appendChild(gambar);
+        status.innerText = 'Selesai! Tekan dan tahan gambar untuk menyimpan ke HP.';
+      } catch (err) {
+        status.innerText = 'Gagal: ' + (err.message || JSON.stringify(err));
+      } finally {
+        btn.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>
