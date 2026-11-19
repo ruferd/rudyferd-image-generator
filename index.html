@@ -8,19 +8,22 @@
     body { font-family: sans-serif; max-width: 520px; margin: 15px auto; padding: 15px; background: #121212; color: #fff; text-align: center; }
     .kotak { background: #1e1e1e; padding: 12px; border-radius: 8px; margin-bottom: 12px; text-align: left; font-size: 14px; }
     label { display: block; margin-bottom: 6px; font-weight: bold; color: #eee; }
-    select, input[type="file"], input[type="range"] { width: 100%; box-sizing: border-box; }
+    select, input[type="file"] { width: 100%; box-sizing: border-box; }
     select { padding: 10px; border-radius: 6px; border: none; background: #2c2c2c; color: #fff; font-size: 14px; }
     .baris-dua { display: flex; gap: 10px; }
     .baris-dua > div { flex: 1; }
-    input[type="file"] { color: #ccc; }
-    #pratinjau { max-width: 140px; margin-top: 10px; border-radius: 6px; display: none; }
+    input[type="file"] { color: #ccc; padding: 6px 0; }
+    #pratinjau { max-width: 160px; max-height: 160px; margin-top: 10px; border-radius: 6px; border: 1px solid #444; display: none; }
     textarea { width: 100%; height: 95px; padding: 10px; border-radius: 8px; border: none; font-size: 15px; box-sizing: border-box; }
     button { width: 100%; padding: 13px; margin-top: 10px; background: #ff9d00; color: #000; font-weight: bold; font-size: 16px; border: none; border-radius: 8px; cursor: pointer; }
     button:disabled { background: #555; color: #aaa; }
-    .btn-hapus { background: #333; color: #fff; font-size: 12px; padding: 6px 10px; width: auto; margin-top: 8px; display: none; }
-    #galeri-hasil { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 15px; }
-    #galeri-hasil img { width: 100%; border-radius: 8px; border: 1px solid #333; }
-    #status { margin-top: 10px; font-size: 14px; color: #ffd166; }
+    .btn-hapus { background: #333; color: #fff; font-size: 12px; padding: 6px 12px; width: auto; margin-top: 8px; display: none; }
+    .btn-unduh { background: #28a745; color: #fff; font-size: 14px; padding: 10px; margin-top: 8px; display: inline-block; text-decoration: none; border-radius: 6px; font-weight: bold; width: 100%; box-sizing: border-box; }
+    #galeri-hasil { margin-top: 15px; }
+    .kartu-hasil { background: #1e1e1e; padding: 10px; border-radius: 8px; margin-bottom: 12px; }
+    .kartu-hasil img { width: 100%; border-radius: 6px; display: block; }
+    .info-res { font-size: 12px; color: #aaa; margin-top: 6px; }
+    #status { margin-top: 10px; font-size: 14px; color: #ffd166; font-weight: bold; }
     .tips { font-size: 12px; color: #aaa; margin-top: 6px; line-height: 1.4; }
     #galeri-riwayat { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px; }
     .item-riwayat { background: #262626; padding: 6px; border-radius: 6px; text-align: center; }
@@ -35,21 +38,21 @@
     <div>
       <label for="rasio">Rasio Gambar:</label>
       <select id="rasio">
-        <option value="1024x1024">1:1 Kotak (1024x1024)</option>
-        <option value="768x1344">9:16 Portrait (768x1344)</option>
-        <option value="1344x768">16:9 Landscape (1344x768)</option>
-        <option value="832x1216">3:4 Foto (832x1216)</option>
-        <option value="1152x896">4:3 Standar (1152x896)</option>
-        <option value="1216x832">3:2 Kamera (1216x832)</option>
+        <option value="1024,1024">1:1 Kotak</option>
+        <option value="768,1344">9:16 Portrait</option>
+        <option value="1344,768">16:9 Landscape</option>
+        <option value="832,1216">3:4 Foto</option>
+        <option value="1152,896">4:3 Standar</option>
+        <option value="1216,832">3:2 Kamera</option>
       </select>
     </div>
     <div>
-      <label for="jumlah">Jumlah Hasil:</label>
-      <select id="jumlah">
-        <option value="1">1x Gambar</option>
-        <option value="2">2x Gambar</option>
-        <option value="4">4x Gambar</option>
-        <option value="6">6x Gambar</option>
+      <label for="resolusi">Resolusi Output:</label>
+      <select id="resolusi">
+        <option value="1">1x (1 MP - Standar HD)</option>
+        <option value="2">2x (4 MP - Tajam)</option>
+        <option value="4">4x (16 MP - Ultra HD)</option>
+        <option value="5.6">6x (32 MP - Maksimal)</option>
       </select>
     </div>
   </div>
@@ -66,9 +69,9 @@
 
   <div class="kotak">
     <label for="fileGambar">Gambar Acuan Karakter (Opsional):</label>
-    <input type="file" id="fileGambar" accept="image/*" onchange="tampilkanPratinjau()" />
+    <input type="file" id="fileGambar" accept="image/*" />
     <img id="pratinjau" alt="Pratinjau Gambar" />
-    <button type="button" id="btnHapus" class="btn-hapus" onclick="hapusGambar()">Hapus Gambar Acuan</button>
+    <button type="button" id="btnHapus" class="btn-hapus">Hapus Gambar Acuan</button>
     
     <div id="opsiAcuan" style="display:none; margin-top:10px;">
       <label for="modeAcuan">Mode Peniruan Gambar Acuan:</label>
@@ -76,59 +79,98 @@
         <option value="karakter">Copy Karakter ke Pose & Tempat Baru</option>
         <option value="struktur">Ikuti Pose & Komposisi Foto Asli</option>
       </select>
-      <div class="tips">Penting: Saat memakai foto acuan, tetap tulis ciri karakter di kotak teks (misal: "a young Indonesian man with short black hair, wearing a doctor coat in a modern hospital").</div>
+      <div class="tips">Tulis ciri karakter + pose + tempat baru di kotak teks (bahasa Inggris).</div>
     </div>
   </div>
 
   <textarea id="prompt" placeholder="Tulis perintah detail dalam bahasa Inggris... (Contoh: a young man wearing a chef uniform cooking in a busy restaurant kitchen, cinematic lighting)"></textarea>
-  <button id="btn" onclick="buatGambar()">Buat Gambar</button>
+  <button type="button" id="btnBuat">Buat Gambar</button>
   <div id="status">Siap digunakan.</div>
   <div id="galeri-hasil"></div>
 
   <div class="kotak" style="margin-top: 20px;">
-    <label>Riwayat 10 Foto Terakhir (Otomatis terhapus dalam 7 hari):</label>
+    <label>Riwayat 10 Foto Terakhir (Terhapus otomatis dalam 7 hari):</label>
     <div id="galeri-riwayat"></div>
   </div>
 
   <script>
     const API_URL = 'https:' + '//aihorde.net/api/v2/generate/async';
     const STATUS_URL = 'https:' + '//aihorde.net/api/v2/generate/status/';
-    const KUNCI_RIWAYAT = 'rudyferd_ai_riwayat_v1';
+    const KUNCI_RIWAYAT = 'rudyferd_ai_riwayat_v2';
     const BATAS_HARI_MS = 7 * 24 * 60 * 60 * 1000;
+    let fileTerpilih = null;
 
-    function tampilkanPratinjau() {
-      const file = document.getElementById('fileGambar').files.item(0);
-      const pratinjau = document.getElementById('pratinjau');
-      const btnHapus = document.getElementById('btnHapus');
-      const opsiAcuan = document.getElementById('opsiAcuan');
-      if (file) {
-        pratinjau.src = URL.createObjectURL(file);
-        pratinjau.style.display = 'block';
-        btnHapus.style.display = 'inline-block';
-        opsiAcuan.style.display = 'block';
+    document.getElementById('fileGambar').addEventListener('change', function(e) {
+      const files = e.target.files;
+      if (files && files.length > 0) {
+        fileTerpilih = files.item(0);
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+          const pratinjau = document.getElementById('pratinjau');
+          pratinjau.src = ev.target.result;
+          pratinjau.style.display = 'block';
+          document.getElementById('btnHapus').style.display = 'inline-block';
+          document.getElementById('opsiAcuan').style.display = 'block';
+        };
+        reader.readAsDataURL(fileTerpilih);
       }
-    }
+    });
 
-    function hapusGambar() {
+    document.getElementById('btnHapus').addEventListener('click', function() {
+      fileTerpilih = null;
       document.getElementById('fileGambar').value = '';
       document.getElementById('pratinjau').style.display = 'none';
       document.getElementById('btnHapus').style.display = 'none';
       document.getElementById('opsiAcuan').style.display = 'none';
-    }
+    });
 
     function ubahUkuranKeBase64(file, lebar, tinggi) {
-      return new Promise((resolve) => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          canvas.width = lebar;
-          canvas.height = tinggi;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, lebar, tinggi);
-          const dataUrl = canvas.toDataURL('image/webp', 0.85);
-          resolve(dataUrl.substring(dataUrl.indexOf(',') + 1));
+      return new Promise(function(resolve) {
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+          const img = new Image();
+          img.onload = function() {
+            const canvas = document.createElement('canvas');
+            canvas.width = lebar;
+            canvas.height = tinggi;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, lebar, tinggi);
+            const dataUrl = canvas.toDataURL('image/webp', 0.88);
+            resolve(dataUrl.substring(dataUrl.indexOf(',') + 1));
+          };
+          img.src = ev.target.result;
         };
-        img.src = URL.createObjectURL(file);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function perbesarResolusi(sumberUrl, skala) {
+      return new Promise(function(resolve) {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = function() {
+          const targetW = Math.round(img.width * skala);
+          const targetH = Math.round(img.height * skala);
+          const canvas = document.createElement('canvas');
+          canvas.width = targetW;
+          canvas.height = targetH;
+          const ctx = canvas.getContext('2d');
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          ctx.drawImage(img, 0, 0, targetW, targetH);
+
+          const hasilUrl = canvas.toDataURL('image/jpeg', 0.92);
+          const mp = ((targetW * targetH) / 1000000).toFixed(1);
+
+          const thumbCanvas = document.createElement('canvas');
+          thumbCanvas.width = 400;
+          thumbCanvas.height = Math.round(400 * (img.height / img.width));
+          thumbCanvas.getContext('2d').drawImage(img, 0, 0, thumbCanvas.width, thumbCanvas.height);
+          const thumbUrl = thumbCanvas.toDataURL('image/jpeg', 0.75);
+
+          resolve({ url: hasilUrl, thumb: thumbUrl, lebar: targetW, tinggi: targetH, mp: mp });
+        };
+        img.src = sumberUrl;
       });
     }
 
@@ -139,7 +181,7 @@
         data = JSON.parse(localStorage.getItem(KUNCI_RIWAYAT) || '[]');
       } catch (e) { data = []; }
 
-      data = data.filter(item => (sekarang - item.waktu) < BATAS_HARI_MS);
+      data = data.filter(function(item) { return (sekarang - item.waktu) < BATAS_HARI_MS; });
       localStorage.setItem(KUNCI_RIWAYAT, JSON.stringify(data));
 
       const wadah = document.getElementById('galeri-riwayat');
@@ -149,76 +191,26 @@
         return;
       }
 
-      data.forEach(item => {
+      data.forEach(function(item) {
         const sisaHari = Math.ceil((BATAS_HARI_MS - (sekarang - item.waktu)) / (24 * 60 * 60 * 1000));
         const div = document.createElement('div');
         div.className = 'item-riwayat';
-        div.innerHTML = `<img src="${item.url}" alt="Riwayat" /><small>Terhapus otomatis dlm ${sisaHari} hari</small>`;
+        div.innerHTML = '<img src="' + item.url + '" alt="Riwayat" /><small>Hapus otomatis: ' + sisaHari + ' hari lagi</small>';
         wadah.appendChild(div);
       });
     }
 
-    function simpanKeRiwayat(urlGambar) {
+    function simpanKeRiwayat(thumbUrl) {
       const sekarang = Date.now();
       let data = [];
       try {
         data = JSON.parse(localStorage.getItem(KUNCI_RIWAYAT) || '[]');
       } catch (e) { data = []; }
 
-      data = data.filter(item => (sekarang - item.waktu) < BATAS_HARI_MS);
-      data.unshift({ url: urlGambar, waktu: sekarang });
+      data = data.filter(function(item) { return (sekarang - item.waktu) < BATAS_HARI_MS; });
+      data.unshift({ url: thumbUrl, waktu: sekarang });
       if (data.length > 10) data = data.slice(0, 10);
 
       try {
         localStorage.setItem(KUNCI_RIWAYAT, JSON.stringify(data));
       } catch (e) {
-        data = data.slice(0, 5);
-        localStorage.setItem(KUNCI_RIWAYAT, JSON.stringify(data));
-      }
-      muatRiwayat();
-    }
-
-    window.addEventListener('DOMContentLoaded', muatRiwayat);
-
-    async function buatGambar() {
-      const promptAsli = document.getElementById('prompt').value.trim();
-      if (!promptAsli) return alert('Isi deskripsi gambar dulu!');
-
-      const gaya = document.getElementById('gaya').value;
-      const jumlah = parseInt(document.getElementById('jumlah').value);
-      const ukuran = document.getElementById('rasio').value.split('x');
-      const lebar = parseInt(ukuran.shift());
-      const tinggi = parseInt(ukuran.pop());
-
-      const file = document.getElementById('fileGambar').files.item(0);
-      const btn = document.getElementById('btn');
-      const status = document.getElementById('status');
-      const galeriHasil = document.getElementById('galeri-hasil');
-
-      btn.disabled = true;
-      galeriHasil.innerHTML = '';
-      status.innerText = `Mengirim perintah (${jumlah}x gambar)...`;
-
-      const promptGabungan = gaya ? `${promptAsli}, ${gaya}` : promptAsli;
-      const negativePrompt = 'blurry, out of focus, low quality, worst quality, pixelated, distorted, deformed, bad anatomy, extra limbs, mutated hands, ugly, watermark, text, signature, cropped, bad face';
-      const promptFinal = `${promptGabungan} ### ${negativePrompt}`;
-
-      try {
-        const payload = {
-          prompt: promptFinal,
-          models: ['AlbedoBase XL (SDXL)', 'Juggernaut XL', 'ICBINP - I Can\'t Believe It\'s Not Photography', 'Deliberate'],
-          params: {
-            width: lebar,
-            height: tinggi,
-            steps: 28,
-            cfg_scale: 7.5,
-            sampler_name: 'k_dpmpp_2m',
-            karras: true,
-            n: jumlah
-          },
-          nsfw: false
-        };
-
-        if (file) {
-
-  
