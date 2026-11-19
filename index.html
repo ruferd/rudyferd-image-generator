@@ -37,9 +37,11 @@
       return new Promise((resolve, reject) => {
         if (window.puter) return resolve(window.puter);
         const s = document.createElement('script');
-        s.src = 'https://puter.com';
+        const protokol = 'https:' + '//';
+        const domain = '://puter.com';
+        s.src = protokol + domain;
         s.onload = () => resolve(window.puter);
-        s.onerror = () => reject(new Error('Server ://puter.com diblokir oleh jaringan/DNS HP Anda.'));
+        s.onerror = () => reject(new Error('Gagal memuat mesin AI dari jaringan saat ini.'));
         document.head.appendChild(s);
       });
     }
@@ -121,4 +123,4 @@
 </body>
 </html>
 
-
+    
