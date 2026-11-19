@@ -37,7 +37,7 @@ async function pilihModelAktif() {
   try {
     const r = await fetch(API + 'status/models?type=image');
     const list = await r.json();
-    const bagus = ['AlbedoBase XL (SDXL)', 'Juggernaut XL', 'DreamShaper', 'Deliberate', 'ICBINP - I Can\'t Believe It\'s Not Photography', 'EpicRealism'];
+    const bagus = ['AlbedoBase XL (SDXL)', 'Juggernaut XL', 'DreamShaper', 'Deliberate', 'EpicRealism'];
     const aktif = list.filter(m => m.count > 0 && bagus.some(b => m.name.includes(b))).map(m => m.name);
     return aktif.length ? aktif.slice(0, 3) : [];
   } catch (e) { return []; }
@@ -113,7 +113,7 @@ $('bRun').onclick = async () => {
   $('bRun').disabled = true; $('hasil').innerHTML = ''; $('stat').innerText = 'Mencari model AI terbaik...';
   try {
     const [pEn, modelsAktif] = await Promise.all([keEn(pAsli), pilihModelAktif()]);
-  
+    const gab = ['adult person, professional portrait', pEn, prof, g].filter(Boolean).join(', ');
     const neg = 'robot, cyborg, android, mask, helmet, screen face, blurry, low quality, distorted, duplicate, bad anatomy, bad face, deformed, ugly, text, watermark';
     $('stat').innerText = 'Memproses: ' + (pEn || prof);
     const pay = {
@@ -132,7 +132,7 @@ $('bRun').onclick = async () => {
     if (!j.id) throw new Error(j.errors ? JSON.stringify(j.errors) : (j.message || 'Gagal antrean'));
     while (true) {
       await new Promise(r => setTimeout(r, 3500));
-      const c = await (await fetch(API + 'generate/status/' + j.id)).json();
+      const c = await (await fetch(API + 'status/' + j.id)).json();
       if (c.done && c.generations && c.generations.length) {
         $('stat').innerText = 'Meningkatkan resolusi...';
         const raw = c.generations.shift().img, hd = await upRes(raw.startsWith('http') ? raw : 'data:image/webp;base64,' + raw, s);
@@ -144,4 +144,3 @@ $('bRun').onclick = async () => {
   } catch (e) { $('stat').innerText = 'Gagal: ' + e.message; } finally { $('bRun').disabled = false; }
 };
 loadH();
-
