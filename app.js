@@ -113,7 +113,7 @@ $('bRun').onclick = async () => {
   $('bRun').disabled = true; $('hasil').innerHTML = ''; $('stat').innerText = 'Mencari model AI terbaik...';
   try {
     const [pEn, modelsAktif] = await Promise.all([keEn(pAsli), pilihModelAktif()]);
-    const gab = ['human face, detailed skin texture', pEn, prof, g].filter(Boolean).join(', ');
+  
     const neg = 'robot, cyborg, android, mask, helmet, screen face, blurry, low quality, distorted, duplicate, bad anatomy, bad face, deformed, ugly, text, watermark';
     $('stat').innerText = 'Memproses: ' + (pEn || prof);
     const pay = {
