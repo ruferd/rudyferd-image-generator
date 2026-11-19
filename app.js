@@ -37,7 +37,7 @@ async function pilihModelAktif() {
   try {
     const r = await fetch(API + 'status/models?type=image');
     const list = await r.json();
-    const bagus = ['AlbedoBase XL (SDXL)', 'Juggernaut XL', 'DreamShaper', 'Deliberate', 'EpicRealism'];
+    const bagus = ['AlbedoBase XL (SDXL)', 'Juggernaut XL', 'DreamShaper', 'Deliberate'];
     const aktif = list.filter(m => m.count > 0 && bagus.some(b => m.name.includes(b))).map(m => m.name);
     return aktif.length ? aktif.slice(0, 3) : [];
   } catch (e) { return []; }
@@ -91,15 +91,21 @@ function prepImg(f, w, h) {
   });
 }
 
-function upRes(url, s) {
+function prosesAkhir(url, targetMP) {
   return new Promise(res => {
     const i = new Image(); i.crossOrigin = 'anonymous';
     i.onload = () => {
-      const w = Math.round(i.width * s), h = Math.round(i.height * s);
+      const rasioAsli = i.width / i.height;
+      let w = i.width, h = i.height;
+      const mpSekarang = (w * h) / 1e6;
+      if (mpSekarang < targetMP) {
+        h = Math.round(Math.sqrt((targetMP * 1e6) / rasioAsli));
+        w = Math.round(h * rasioAsli);
+      }
       const c = document.createElement('canvas'); c.width = w; c.height = h;
       const x = c.getContext('2d'); x.imageSmoothingEnabled = true; x.imageSmoothingQuality = 'high';
       x.drawImage(i, 0, 0, w, h);
-      c.toBlob(b => res({ u: URL.createObjectURL(b), b, w, h, mp: ((w * h) / 1e6).toFixed(1) }), 'image/jpeg', 0.92);
+      c.toBlob(b => res({ u: URL.createObjectURL(b), b, w, h, mp: ((w * h) / 1e6).toFixed(1) }), 'image/jpeg', 0.95);
     };
     i.src = url;
   });
@@ -108,17 +114,22 @@ function upRes(url, s) {
 $('bRun').onclick = async () => {
   const pAsli = $('prm').value.trim(), prof = $('profesi').value;
   if (!pAsli && !prof) return alert('Isi perintah atau pilih pekerjaan!');
-  const [w, h] = $('rasio').value.split(',').map(Number), s = parseFloat($('res').value), g = $('gaya').value;
+  const [w, h] = $('rasio').value.split(',').map(Number), skala = parseFloat($('res').value), g = $('gaya').value;
+  const targetMP = skala <= 2 ? 1 : (skala <= 4 ? 4 : (skala <= 8 ? 16 : 32));
   const safeW = Math.min(w, 640), safeH = Math.min(h, 640);
-  $('bRun').disabled = true; $('hasil').innerHTML = ''; $('stat').innerText = 'Mencari model AI terbaik...';
+  $('bRun').disabled = true; $('hasil').innerHTML = ''; $('stat').innerText = 'Mencari model AI + Real-ESRGAN Upscaler...';
   try {
     const [pEn, modelsAktif] = await Promise.all([keEn(pAsli), pilihModelAktif()]);
-    const gab = ['adult person, professional portrait', pEn, prof, g].filter(Boolean).join(', ');
-    const neg = 'robot, cyborg, android, mask, helmet, screen face, blurry, low quality, distorted, duplicate, bad anatomy, bad face, deformed, ugly, text, watermark';
-    $('stat').innerText = 'Memproses: ' + (pEn || prof);
+    const gab = [pEn, prof, g].filter(Boolean).join(', ');
+    const neg = 'blurry, low quality, distorted, duplicate, bad anatomy, deformed, ugly, text, watermark';
+    $('stat').innerText = 'Memproses AI + Upscale Tajam: ' + (pEn || prof);
     const pay = {
       prompt: gab + ' ### ' + neg,
-      params: { width: safeW, height: safeH, steps: 28, cfg_scale: 7, sampler_name: 'k_dpmpp_2m', karras: true, n: 1 },
+      params: {
+        width: safeW, height: safeH, steps: 28, cfg_scale: 7.5,
+        sampler_name: 'k_dpmpp_2m', karras: true, n: 1,
+        post_processing: targetMP >= 4 ? ['RealESRGAN_x4plus'] : []
+      },
       nsfw: false
     };
     if (modelsAktif.length) pay.models = modelsAktif;
@@ -134,12 +145,12 @@ $('bRun').onclick = async () => {
       await new Promise(r => setTimeout(r, 3500));
       const c = await (await fetch(API + 'generate/status/' + j.id)).json();
       if (c.done && c.generations && c.generations.length) {
-        $('stat').innerText = 'Meningkatkan resolusi...';
-        const raw = c.generations.shift().img, hd = await upRes(raw.startsWith('http') ? raw : 'data:image/webp;base64,' + raw, s);
-        $('hasil').innerHTML = `<img src="${hd.u}"><div style="font-size:12px;color:#aaa;margin-top:5px">${hd.w}x${hd.h} px (~${hd.mp} MP)</div><a class="btn-dl" href="${hd.u}" download="rf-${hd.mp}MP.jpg">Simpan (${hd.mp} MP)</a>`;
+        $('stat').innerText = 'Menyiapkan file resolusi tinggi...';
+        const raw = c.generations.shift().img, hd = await prosesAkhir(raw.startsWith('http') ? raw : 'data:image/webp;base64,' + raw, targetMP);
+        $('hasil').innerHTML = `<img src="${hd.u}"><div style="font-size:12px;color:#aaa;margin-top:5px">${hd.w}x${hd.h} px (~${hd.mp} MP • AI Real-ESRGAN)</div><a class="btn-dl" href="${hd.u}" download="rf-${hd.mp}MP.jpg">Simpan (${hd.mp} MP)</a>`;
         await saveH(hd.b, hd.mp); $('stat').innerText = 'Selesai!'; break;
       }
-      $('stat').innerText = `Antrean: ${c.queue_position || 0} (estimasi ${c.wait_time || 20} dtk)`;
+      $('stat').innerText = `Antrean: ${c.queue_position || 0} (estimasi ${c.wait_time || 25} dtk)`;
     }
   } catch (e) { $('stat').innerText = 'Gagal: ' + e.message; } finally { $('bRun').disabled = false; }
 };
