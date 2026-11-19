@@ -1,4 +1,4 @@
- API = 'https:' + '//aihorde.net/api/v2/generate/';
+const API = 'https:' + '//aihorde.net/api/v2/generate/';
 const TR = 'https:' + '//api.mymemory.translated.net/get?langpair=id|en&q=';
 const EXP = 604800000;
 let fSel = null;
@@ -99,6 +99,7 @@ $('bRun').onclick = async () => {
   const pAsli = $('prm').value.trim(), prof = $('profesi').value;
   if (!pAsli && !prof) return alert('Isi perintah atau pilih pekerjaan!');
   const [w, h] = $('rasio').value.split(',').map(Number), s = parseFloat($('res').value), g = $('gaya').value;
+  const safeW = Math.min(w, 640), safeH = Math.min(h, 640);
   $('bRun').disabled = true; $('hasil').innerHTML = ''; $('stat').innerText = 'Menerjemahkan...';
   try {
     const pEn = await keEn(pAsli), gab = [pEn, prof, g].filter(Boolean).join(', ');
@@ -106,18 +107,17 @@ $('bRun').onclick = async () => {
     $('stat').innerText = 'Memproses: ' + (pEn || prof);
     const pay = {
       prompt: gab + ' ### ' + neg,
-      models: ['Realistic Vision', 'Deliberate', 'DreamShaper'],
-      params: { width: w, height: h, steps: 30, cfg_scale: 8, sampler_name: 'k_dpmpp_2m', karras: true, n: 1 },
+      params: { width: safeW, height: safeH, steps: 25, cfg_scale: 7.5, sampler_name: 'k_dpmpp_2m', karras: true, n: 1 },
       nsfw: false
     };
     if (fSel) {
-      pay.source_image = await prepImg(fSel, w, h); pay.source_processing = 'img2img';
-      if ($('mode').value === 'wajah') {
-        pay.params.denoising_strength = 0.78; pay.params.control_type = 'ipadapter_face_id'; pay.params.image_is_control = true;
-      } else { pay.params.denoising_strength = 0.45; }
+      pay.source_image = await prepImg(fSel, safeW, safeH);
+      pay.source_processing = 'img2img';
+      pay.params.denoising_strength = $('mode').value === 'wajah' ? 0.65 : 0.45;
     }
     const r = await fetch(API + 'async', { method: 'POST', headers: { 'Content-Type': 'application/json', 'apikey': '0000000000' }, body: JSON.stringify(pay) });
-    const j = await r.json(); if (!j.id) throw new Error(j.message || 'Gagal antrean');
+    const j = await r.json();
+    if (!j.id) throw new Error(j.errors ? JSON.stringify(j.errors) : (j.message || 'Gagal antrean'));
     while (true) {
       await new Promise(r => setTimeout(r, 3500));
       const c = await (await fetch(API + 'status/' + j.id)).json();
@@ -131,5 +131,4 @@ $('bRun').onclick = async () => {
     }
   } catch (e) { $('stat').innerText = 'Gagal: ' + e.message; } finally { $('bRun').disabled = false; }
 };
-loadH(
- 
+loadH();
