@@ -1,311 +1,79 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rudyferd AI Image Studio</title>
-  <style>
-    body { font-family: sans-serif; max-width: 520px; margin: 15px auto; padding: 15px; background: #121212; color: #fff; text-align: center; }
-    .kotak { background: #1e1e1e; padding: 12px; border-radius: 8px; margin-bottom: 12px; text-align: left; font-size: 14px; }
-    label { display: block; margin-bottom: 6px; font-weight: bold; color: #eee; }
-    select, input[type="file"] { width: 100%; box-sizing: border-box; }
-    select { padding: 10px; border-radius: 6px; border: none; background: #2c2c2c; color: #fff; font-size: 14px; }
-    .baris-dua { display: flex; gap: 10px; }
-    .baris-dua > div { flex: 1; }
-    input[type="file"] { color: #ccc; padding: 6px 0; }
-    #pratinjau { max-width: 160px; max-height: 160px; margin-top: 10px; border-radius: 6px; border: 1px solid #444; display: none; }
-    textarea { width: 100%; height: 95px; padding: 10px; border-radius: 8px; border: none; font-size: 15px; box-sizing: border-box; }
-    button { width: 100%; padding: 13px; margin-top: 10px; background: #ff9d00; color: #000; font-weight: bold; font-size: 16px; border: none; border-radius: 8px; cursor: pointer; }
-    button:disabled { background: #555; color: #aaa; }
-    .btn-hapus { background: #333; color: #fff; font-size: 12px; padding: 6px 12px; width: auto; margin-top: 8px; display: none; }
-    .btn-unduh { background: #28a745; color: #fff; font-size: 14px; padding: 10px; margin-top: 8px; display: inline-block; text-decoration: none; border-radius: 6px; font-weight: bold; width: 100%; box-sizing: border-box; }
-    #galeri-hasil { margin-top: 15px; }
-    .kartu-hasil { background: #1e1e1e; padding: 10px; border-radius: 8px; margin-bottom: 12px; }
-    .kartu-hasil img { width: 100%; border-radius: 6px; display: block; }
-    .info-res { font-size: 12px; color: #aaa; margin-top: 6px; }
-    #status { margin-top: 10px; font-size: 14px; color: #ffd166; font-weight: bold; }
-    .tips { font-size: 12px; color: #aaa; margin-top: 6px; line-height: 1.4; }
-    #galeri-riwayat { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px; }
-    .item-riwayat { background: #262626; padding: 6px; border-radius: 6px; text-align: center; }
-    .item-riwayat img { width: 100%; border-radius: 4px; }
-    .item-riwayat small { display: block; font-size: 11px; color: #999; margin-top: 4px; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rudyferd AI Studio</title>
+<style>
+body{font-family:sans-serif;max-width:500px;margin:10px auto;padding:12px;background:#121212;color:#fff;text-align:center}
+.box{background:#1e1e1e;padding:10px;border-radius:8px;margin-bottom:10px;text-align:left;font-size:13px}
+.row{display:flex;gap:8px}.row>div{flex:1}
+label{display:block;margin-bottom:4px;font-weight:bold}
+select,textarea,button{width:100%;box-sizing:border-box;border-radius:6px;border:none;font-size:14px}
+select{padding:9px;background:#2c2c2c;color:#fff}
+textarea{height:85px;padding:10px;margin-bottom:8px}
+button{padding:12px;background:#ff9d00;color:#000;font-weight:bold;font-size:15px;cursor:pointer}
+button:disabled{background:#555;color:#aaa}
+#prev{max-width:120px;margin-top:8px;border-radius:6px;display:none}
+.btn-del{background:#333;color:#fff;font-size:11px;padding:5px 8px;width:auto;margin-top:6px;display:none}
+.btn-dl{display:block;background:#28a745;color:#fff;padding:9px;margin-top:6px;border-radius:6px;text-decoration:none;font-weight:bold}
+#hasil img{width:100%;border-radius:8px;margin-top:10px}
+#riwayat{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:8px}
+#riwayat div{background:#262626;padding:5px;border-radius:6px;font-size:10px;color:#aaa}
+#riwayat img{width:100%;border-radius:4px}
+#stat{margin:8px 0;font-size:13px;color:#ffd166;font-weight:bold}
+</style>
 </head>
 <body>
-  <h2>Rudyferd AI Studio</h2>
-
-  <div class="kotak baris-dua">
-    <div>
-      <label for="rasio">Rasio Gambar:</label>
-      <select id="rasio">
-        <option value="1024,1024">1:1 Kotak</option>
-        <option value="768,1344">9:16 Portrait</option>
-        <option value="1344,768">16:9 Landscape</option>
-        <option value="832,1216">3:4 Foto</option>
-        <option value="1152,896">4:3 Standar</option>
-        <option value="1216,832">3:2 Kamera</option>
-      </select>
-    </div>
-    <div>
-      <label for="resolusi">Resolusi Output:</label>
-      <select id="resolusi">
-        <option value="1">1x (1 MP - Standar HD)</option>
-        <option value="2">2x (4 MP - Tajam)</option>
-        <option value="4">4x (16 MP - Ultra HD)</option>
-        <option value="5.6">6x (32 MP - Maksimal)</option>
-      </select>
-    </div>
-  </div>
-
-  <div class="kotak">
-    <label for="gaya">Gaya Gambar:</label>
-    <select id="gaya">
-      <option value="photorealistic, ultra detailed, sharp focus, 8k uhd, natural lighting">Foto Realistis Tajam</option>
-      <option value="anime style, vibrant colors, clean lineart, high quality illustration">Anime / Ilustrasi</option>
-      <option value="3d render, unreal engine 5, cinema4d, sharp focus, detailed textures">3D Animasi</option>
-      <option value="">Sesuai Teks Saja</option>
-    </select>
-  </div>
-
-  <div class="kotak">
-    <label for="fileGambar">Gambar Acuan Karakter (Opsional):</label>
-    <input type="file" id="fileGambar" accept="image/*" />
-    <img id="pratinjau" alt="Pratinjau Gambar" />
-    <button type="button" id="btnHapus" class="btn-hapus">Hapus Gambar Acuan</button>
-    
-    <div id="opsiAcuan" style="display:none; margin-top:10px;">
-      <label for="modeAcuan">Mode Peniruan Gambar Acuan:</label>
-      <select id="modeAcuan">
-        <option value="karakter">Copy Karakter ke Pose & Tempat Baru</option>
-        <option value="struktur">Ikuti Pose & Komposisi Foto Asli</option>
-      </select>
-      <div class="tips">Tulis ciri karakter + pose + tempat baru di kotak teks (bahasa Inggris).</div>
-    </div>
-  </div>
-
-  <textarea id="prompt" placeholder="Tulis perintah detail dalam bahasa Inggris... (Contoh: a young man wearing a chef uniform cooking in a busy restaurant kitchen, cinematic lighting)"></textarea>
-  <button type="button" id="btnBuat">Buat Gambar</button>
-  <div id="status">Siap digunakan.</div>
-  <div id="galeri-hasil"></div>
-
-  <div class="kotak" style="margin-top: 20px;">
-    <label>Riwayat 10 Foto Terakhir (Terhapus otomatis dalam 7 hari):</label>
-    <div id="galeri-riwayat"></div>
-  </div>
-
-  <script>
-    const API_URL = 'https:' + '//aihorde.net/api/v2/generate/async';
-    const STATUS_URL = 'https:' + '//aihorde.net/api/v2/generate/status/';
-    const KUNCI_RIWAYAT = 'rudyferd_ai_riwayat_v2';
-    const BATAS_HARI_MS = 7 * 24 * 60 * 60 * 1000;
-    let fileTerpilih = null;
-
-    document.getElementById('fileGambar').addEventListener('change', function(e) {
-      const files = e.target.files;
-      if (files && files.length > 0) {
-        fileTerpilih = files.item(0);
-        const reader = new FileReader();
-        reader.onload = function(ev) {
-          const pratinjau = document.getElementById('pratinjau');
-          pratinjau.src = ev.target.result;
-          pratinjau.style.display = 'block';
-          document.getElementById('btnHapus').style.display = 'inline-block';
-          document.getElementById('opsiAcuan').style.display = 'block';
-        };
-        reader.readAsDataURL(fileTerpilih);
+<h3>Rudyferd AI Studio</h3>
+<div class="box row">
+  <div><label>Rasio:</label><select id="rasio"><option value="1024,1024">1:1 Kotak</option><option value="768,1344">9:16 Story</option><option value="1344,768">16:9 Lebar</option><option value="832,1216">3:4 Foto</option><option value="1152,896">4:3 Standar</option><option value="1216,832">3:2 Kamera</option></select></div>
+  <div><label>Resolusi:</label><select id="res"><option value="1">1x (1 MP)</option><option value="2">2x (4 MP)</option><option value="4">4x (16 MP)</option><option value="5.6">6x (32 MP)</option></select></div>
+</div>
+<div class="box"><label>Gaya:</label><select id="gaya"><option value="photorealistic, ultra detailed, sharp focus, 8k">Foto Realistis Tajam</option><option value="anime style, vibrant, clean lineart">Anime / Ilustrasi</option><option value="3d render, unreal engine 5, detailed">3D Animasi</option><option value="">Sesuai Teks Saja</option></select></div>
+<div class="box">
+  <label>Gambar Acuan Karakter (Opsional):</label>
+  <input type="file" id="fImg" accept="image/*">
+  <img id="prev"><button type="button" id="bDel" class="btn-del">Hapus Foto</button>
+  <div id="mBox" style="display:none;margin-top:8px"><label>Mode Acuan:</label><select id="mode"><option value="kar">Copy Karakter ke Pose/Tempat Baru</option><option value="str">Ikuti Pose Foto Asli</option></select></div>
+</div>
+<textarea id="prm" placeholder="Tulis perintah bahasa Inggris... (Contoh: young man wearing chef uniform cooking in restaurant kitchen)"></textarea>
+<button type="button" id="bRun">Buat Gambar</button>
+<div id="stat">Siap digunakan.</div>
+<div id="hasil"></div>
+<div class="box" style="margin-top:15px"><label>Riwayat 10 Foto (Hapus otomatis 7 hari):</label><div id="riwayat"></div></div>
+<script>
+const API='https:'+'//aihorde.net/api/v2/generate/',KEY='rf_hist_v3',EXP=604800000;let fSel=null;
+const $=id=>document.getElementById(id);
+$('fImg').onchange=e=>{fSel=e.target.files.item(0);if(!fSel)return;const r=new FileReader();r.onload=v=>{$('prev').src=v.target.result;$('prev').style.display='block';$('bDel').style.display='inline-block';$('mBox').style.display='block'};r.readAsDataURL(fSel)};
+$('bDel').onclick=()=>{fSel=null;$('fImg').value='';$('prev').style.display='none';$('bDel').style.display='none';$('mBox').style.display='none'};
+function loadH(){const n=Date.now();let d=JSON.parse(localStorage.getItem(KEY)||'[]').filter(x=>n-x.t<EXP);localStorage.setItem(KEY,JSON.stringify(d));$('riwayat').innerHTML=d.length?d.map(x=>`<div><img src="${x.u}">Hapus ${Math.ceil((EXP-(n-x.t))/86400000)} hr lagi</div>`).join(''):'Belum ada riwayat.'}
+function saveH(u){const n=Date.now();let d=JSON.parse(localStorage.getItem(KEY)||'[]').filter(x=>n-x.t<EXP);d.unshift({u,t:n});if(d.length>10)d=d.slice(0,10);try{localStorage.setItem(KEY,JSON.stringify(d))}catch(e){localStorage.setItem(KEY,JSON.stringify(d.slice(0,4)))}loadH()}
+function prepImg(f,w,h){return new Promise(res=>{const r=new FileReader();r.onload=e=>{const i=new Image();i.onload=()=>{const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(i,0,0,w,h);const u=c.toDataURL('image/webp',.88);res(u.slice(u.indexOf(',')+1))};i.src=e.target.result};r.readAsDataURL(f)})}
+function upRes(url,s){return new Promise(res=>{const i=new Image();i.crossOrigin='anonymous';i.onload=()=>{const w=Math.round(i.width*s),h=Math.round(i.height*s),c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.imageSmoothingEnabled=true;x.imageSmoothingQuality='high';x.drawImage(i,0,0,w,h);const tc=document.createElement('canvas');tc.width=300;tc.height=Math.round(300*(i.height/i.width));tc.getContext('2d').drawImage(i,0,0,tc.width,tc.height);res({u:c.toDataURL('image/jpeg',.92),th:tc.toDataURL('image/jpeg',.7),w,h,mp:((w*h)/1e6).toFixed(1)})};i.src=url})}
+$('bRun').onclick=async()=>{
+  const p=$('prm').value.trim();if(!p)return alert('Isi deskripsi gambar dulu!');
+  const [w,h]=$('rasio').value.split(',').map(Number),s=parseFloat($('res').value),g=$('gaya').value;
+  $('bRun').disabled=true;$('hasil').innerHTML='';$('stat').innerText='Mengirim perintah...';
+  try{
+    const pay={prompt:(g?p+', '+g:p)+' ### blurry, low quality, distorted, bad anatomy, extra limbs, ugly, watermark, text',models:['AlbedoBase XL (SDXL)','Juggernaut XL','Deliberate'],params:{width:w,height:h,steps:28,cfg_scale:7.5,sampler_name:'k_dpmpp_2m',karras:true,n:1},nsfw:false};
+    if(fSel){pay.source_image=await prepImg(fSel,w,h);pay.source_processing='img2img';pay.params.denoising_strength=$('mode').value==='kar'?0.72:0.45;if($('mode').value==='kar'){pay.params.control_type='canny';pay.params.image_is_control=false}}
+    const r=await fetch(API+'async',{method:'POST',headers:{'Content-Type':'application/json','apikey':'0000000000'},body:JSON.stringify(pay)});
+    const j=await r.json();if(!j.id)throw new Error(j.message||'Gagal antrean');
+    while(true){
+      await new Promise(r=>setTimeout(r,3500));
+      const c=await(await fetch(API+'status/'+j.id)).json();
+      if(c.done&&c.generations&&c.generations.length){
+        $('stat').innerText='Meningkatkan resolusi...';
+        const raw=c.generations.shift().img,hd=await upRes(raw.startsWith('http')?raw:'data:image/webp;base64,'+raw,s);
+        $('hasil').innerHTML=`<img src="${hd.u}"><div style="font-size:12px;color:#aaa;margin-top:5px">${hd.w}x${hd.h} px (~${hd.mp} MP)</div><a class="btn-dl" href="${hd.u}" download="rudyferd-${hd.mp}MP.jpg">Simpan Foto (${hd.mp} MP)</a>`;
+        saveH(hd.th);$('stat').innerText='Selesai!';break;
       }
-    });
-
-    document.getElementById('btnHapus').addEventListener('click', function() {
-      fileTerpilih = null;
-      document.getElementById('fileGambar').value = '';
-      document.getElementById('pratinjau').style.display = 'none';
-      document.getElementById('btnHapus').style.display = 'none';
-      document.getElementById('opsiAcuan').style.display = 'none';
-    });
-
-    function ubahUkuranKeBase64(file, lebar, tinggi) {
-      return new Promise(function(resolve) {
-        const reader = new FileReader();
-        reader.onload = function(ev) {
-          const img = new Image();
-          img.onload = function() {
-            const canvas = document.createElement('canvas');
-            canvas.width = lebar;
-            canvas.height = tinggi;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, lebar, tinggi);
-            const dataUrl = canvas.toDataURL('image/webp', 0.88);
-            resolve(dataUrl.substring(dataUrl.indexOf(',') + 1));
-          };
-          img.src = ev.target.result;
-        };
-        reader.readAsDataURL(file);
-      });
+      $('stat').innerText=`Antrean: ${c.queue_position||0} (estimasi ${c.wait_time||20} dtk)`;
     }
-
-    function perbesarResolusi(sumberUrl, skala) {
-      return new Promise(function(resolve) {
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.onload = function() {
-          const targetW = Math.round(img.width * skala);
-          const targetH = Math.round(img.height * skala);
-          const canvas = document.createElement('canvas');
-          canvas.width = targetW;
-          canvas.height = targetH;
-          const ctx = canvas.getContext('2d');
-          ctx.imageSmoothingEnabled = true;
-          ctx.imageSmoothingQuality = 'high';
-          ctx.drawImage(img, 0, 0, targetW, targetH);
-
-          const hasilUrl = canvas.toDataURL('image/jpeg', 0.92);
-          const mp = ((targetW * targetH) / 1000000).toFixed(1);
-
-          const thumbCanvas = document.createElement('canvas');
-          thumbCanvas.width = 400;
-          thumbCanvas.height = Math.round(400 * (img.height / img.width));
-          thumbCanvas.getContext('2d').drawImage(img, 0, 0, thumbCanvas.width, thumbCanvas.height);
-          const thumbUrl = thumbCanvas.toDataURL('image/jpeg', 0.75);
-
-          resolve({ url: hasilUrl, thumb: thumbUrl, lebar: targetW, tinggi: targetH, mp: mp });
-        };
-        img.src = sumberUrl;
-      });
-    }
-
-    function muatRiwayat() {
-      const sekarang = Date.now();
-      let data = [];
-      try {
-        data = JSON.parse(localStorage.getItem(KUNCI_RIWAYAT) || '[]');
-      } catch (e) { data = []; }
-
-      data = data.filter(function(item) { return (sekarang - item.waktu) < BATAS_HARI_MS; });
-      localStorage.setItem(KUNCI_RIWAYAT, JSON.stringify(data));
-
-      const wadah = document.getElementById('galeri-riwayat');
-      wadah.innerHTML = '';
-      if (data.length === 0) {
-        wadah.innerHTML = '<div class="tips">Belum ada riwayat foto tersimpan.</div>';
-        return;
-      }
-
-      data.forEach(function(item) {
-        const sisaHari = Math.ceil((BATAS_HARI_MS - (sekarang - item.waktu)) / (24 * 60 * 60 * 1000));
-        const div = document.createElement('div');
-        div.className = 'item-riwayat';
-        div.innerHTML = '<img src="' + item.url + '" alt="Riwayat" /><small>Hapus otomatis: ' + sisaHari + ' hari lagi</small>';
-        wadah.appendChild(div);
-      });
-    }
-
-    function simpanKeRiwayat(thumbUrl) {
-      const sekarang = Date.now();
-      let data = [];
-      try {
-        data = JSON.parse(localStorage.getItem(KUNCI_RIWAYAT) || '[]');
-      } catch (e) { data = []; }
-
-      data = data.filter(function(item) { return (sekarang - item.waktu) < BATAS_HARI_MS; });
-      data.unshift({ url: thumbUrl, waktu: sekarang });
-      if (data.length > 10) data = data.slice(0, 10);
-
-      try {
-        localStorage.setItem(KUNCI_RIWAYAT, JSON.stringify(data));
-      } catch (e) {
-data = data.slice(0, 5);
-localStorage.setItem(KUNCI_RIWAYAT, JSON.stringify(data));
-}
-muatRiwayat();
-}
-window.addEventListener('DOMContentLoaded', muatRiwayat);
-document.getElementById('btnBuat').addEventListener('click', async function() {
-const promptAsli = document.getElementById('prompt').value.trim();
-if (!promptAsli) return alert('Isi deskripsi gambar dulu!');
-const gaya = document.getElementById('gaya').value;
-const skala = parseFloat(document.getElementById('resolusi').value);
-const rasioTeks = document.getElementById('rasio').value;
-const komaIdx = rasioTeks.indexOf(',');
-const lebar = parseInt(rasioTeks.substring(0, komaIdx));
-const tinggi = parseInt(rasioTeks.substring(komaIdx + 1));
-const btn = document.getElementById('btnBuat');
-const status = document.getElementById('status');
-const galeriHasil = document.getElementById('galeri-hasil');
-btn.disabled = true;
-galeriHasil.innerHTML = '';
-status.innerText = 'Mengirim perintah ke server AI...';
-const promptGabungan = gaya ? promptAsli + ', ' + gaya : promptAsli;
-const negativePrompt = 'blurry, out of focus, low quality, worst quality, pixelated, distorted, deformed, bad anatomy, extra limbs, mutated hands, ugly, watermark, text, signature, cropped, bad face';
-const promptFinal = promptGabungan + ' ### ' + negativePrompt;
-try {
-const payload = {
-prompt: promptFinal,
-models: ['AlbedoBase XL (SDXL)', 'Juggernaut XL', 'ICBINP - I Can't Believe It's Not Photography', 'Deliberate'],
-params: {
-width: lebar,
-height: tinggi,
-steps: 28,
-cfg_scale: 7.5,
-sampler_name: 'k_dpmpp_2m',
-karras: true,
-n: 1
-},
-nsfw: false
+  }catch(e){$('stat').innerText='Gagal: '+e.message}finally{$('bRun').disabled=false}
 };
-if (fileTerpilih) {
-status.innerText = 'Menyiapkan gambar acuan...';
-const modeAcuan = document.getElementById('modeAcuan').value;
-payload.source_image = await ubahUkuranKeBase64(fileTerpilih, lebar, tinggi);
-payload.source_processing = 'img2img';
-if (modeAcuan === 'karakter') {
-payload.params.denoising_strength = 0.72;
-payload.params.control_type = 'canny';
-payload.params.image_is_control = false;
-} else {
-payload.params.denoising_strength = 0.45;
-}
-}
-const res = await fetch(API_URL, {
-method: 'POST',
-headers: {
-'Content-Type': 'application/json',
-'apikey': '0000000000'
-},
-body: JSON.stringify(payload)
-});
-const data = await res.json();
-if (!data.id) throw new Error(data.message || 'Gagal memulai antrean.');
-const jobId = data.id;
-let selesai = false;
-while (!selesai) {
-await new Promise(function(r) { setTimeout(r, 3500); });
-const cekRes = await fetch(STATUS_URL + jobId);
-const cekData = await cekRes.json();
-if (cekData.done && cekData.generations && cekData.generations.length > 0) {
-status.innerText = 'Meningkatkan resolusi gambar...';
-const gen = cekData.generations.shift();
-const rawUrl = gen.img.startsWith('http') ? gen.img : 'data:image/webp;base64,' + gen.img;
-const hasilHD = await perbesarResolusi(rawUrl, skala);
-const kartu = document.createElement('div');
-kartu.className = 'kartu-hasil';
-kartu.innerHTML =
-'' +
-'Resolusi: ' + hasilHD.lebar + ' x ' + hasilHD.tinggi + ' px (~' + hasilHD.mp + ' MP)' +
-'Simpan Foto (' + hasilHD.mp + ' MP)';
-galeriHasil.appendChild(kartu);
-simpanKeRiwayat(hasilHD.thumb);
-status.innerText = 'Selesai! Ketuk tombol hijau untuk menyimpan foto resolusi tinggi.';
-selesai = true;
-} else {
-const antrean = cekData.queue_position || 0;
-const tunggu = cekData.wait_time || 25;
-status.innerText = 'Memproses gambar... Antrean: ' + antrean + ' (estimasi ' + tunggu + ' detik)';
-}
-}
-} catch (err) {
-status.innerText = 'Gagal: ' + err.message;
-} finally {
-btn.disabled = false;
-}
-});
+loadH();
+</script>
+</body>
+</html>
