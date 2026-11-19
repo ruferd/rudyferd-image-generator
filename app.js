@@ -1,4 +1,4 @@
-const API = 'https:' + '//aihorde.net/api/v2/generate/';
+ API = 'https:' + '//aihorde.net/api/v2/generate/';
 const TR = 'https:' + '//api.mymemory.translated.net/get?langpair=id|en&q=';
 const EXP = 604800000;
 let fSel = null;
@@ -131,4 +131,5 @@ $('bRun').onclick = async () => {
     }
   } catch (e) { $('stat').innerText = 'Gagal: ' + e.message; } finally { $('bRun').disabled = false; }
 };
-loadH();
+loadH(
+ 
