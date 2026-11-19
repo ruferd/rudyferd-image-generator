@@ -214,3 +214,98 @@
       try {
         localStorage.setItem(KUNCI_RIWAYAT, JSON.stringify(data));
       } catch (e) {
+data = data.slice(0, 5);
+localStorage.setItem(KUNCI_RIWAYAT, JSON.stringify(data));
+}
+muatRiwayat();
+}
+window.addEventListener('DOMContentLoaded', muatRiwayat);
+document.getElementById('btnBuat').addEventListener('click', async function() {
+const promptAsli = document.getElementById('prompt').value.trim();
+if (!promptAsli) return alert('Isi deskripsi gambar dulu!');
+const gaya = document.getElementById('gaya').value;
+const skala = parseFloat(document.getElementById('resolusi').value);
+const rasioTeks = document.getElementById('rasio').value;
+const komaIdx = rasioTeks.indexOf(',');
+const lebar = parseInt(rasioTeks.substring(0, komaIdx));
+const tinggi = parseInt(rasioTeks.substring(komaIdx + 1));
+const btn = document.getElementById('btnBuat');
+const status = document.getElementById('status');
+const galeriHasil = document.getElementById('galeri-hasil');
+btn.disabled = true;
+galeriHasil.innerHTML = '';
+status.innerText = 'Mengirim perintah ke server AI...';
+const promptGabungan = gaya ? promptAsli + ', ' + gaya : promptAsli;
+const negativePrompt = 'blurry, out of focus, low quality, worst quality, pixelated, distorted, deformed, bad anatomy, extra limbs, mutated hands, ugly, watermark, text, signature, cropped, bad face';
+const promptFinal = promptGabungan + ' ### ' + negativePrompt;
+try {
+const payload = {
+prompt: promptFinal,
+models: ['AlbedoBase XL (SDXL)', 'Juggernaut XL', 'ICBINP - I Can't Believe It's Not Photography', 'Deliberate'],
+params: {
+width: lebar,
+height: tinggi,
+steps: 28,
+cfg_scale: 7.5,
+sampler_name: 'k_dpmpp_2m',
+karras: true,
+n: 1
+},
+nsfw: false
+};
+if (fileTerpilih) {
+status.innerText = 'Menyiapkan gambar acuan...';
+const modeAcuan = document.getElementById('modeAcuan').value;
+payload.source_image = await ubahUkuranKeBase64(fileTerpilih, lebar, tinggi);
+payload.source_processing = 'img2img';
+if (modeAcuan === 'karakter') {
+payload.params.denoising_strength = 0.72;
+payload.params.control_type = 'canny';
+payload.params.image_is_control = false;
+} else {
+payload.params.denoising_strength = 0.45;
+}
+}
+const res = await fetch(API_URL, {
+method: 'POST',
+headers: {
+'Content-Type': 'application/json',
+'apikey': '0000000000'
+},
+body: JSON.stringify(payload)
+});
+const data = await res.json();
+if (!data.id) throw new Error(data.message || 'Gagal memulai antrean.');
+const jobId = data.id;
+let selesai = false;
+while (!selesai) {
+await new Promise(function(r) { setTimeout(r, 3500); });
+const cekRes = await fetch(STATUS_URL + jobId);
+const cekData = await cekRes.json();
+if (cekData.done && cekData.generations && cekData.generations.length > 0) {
+status.innerText = 'Meningkatkan resolusi gambar...';
+const gen = cekData.generations.shift();
+const rawUrl = gen.img.startsWith('http') ? gen.img : 'data:image/webp;base64,' + gen.img;
+const hasilHD = await perbesarResolusi(rawUrl, skala);
+const kartu = document.createElement('div');
+kartu.className = 'kartu-hasil';
+kartu.innerHTML =
+'' +
+'Resolusi: ' + hasilHD.lebar + ' x ' + hasilHD.tinggi + ' px (~' + hasilHD.mp + ' MP)' +
+'Simpan Foto (' + hasilHD.mp + ' MP)';
+galeriHasil.appendChild(kartu);
+simpanKeRiwayat(hasilHD.thumb);
+status.innerText = 'Selesai! Ketuk tombol hijau untuk menyimpan foto resolusi tinggi.';
+selesai = true;
+} else {
+const antrean = cekData.queue_position || 0;
+const tunggu = cekData.wait_time || 25;
+status.innerText = 'Memproses gambar... Antrean: ' + antrean + ' (estimasi ' + tunggu + ' detik)';
+}
+}
+} catch (err) {
+status.innerText = 'Gagal: ' + err.message;
+} finally {
+btn.disabled = false;
+}
+});
