@@ -6,30 +6,60 @@
   <title>Rudyferd AI Image Generator</title>
   <style>
     body { font-family: sans-serif; max-width: 500px; margin: 20px auto; padding: 15px; background: #121212; color: #fff; text-align: center; }
-    .kotak-upload { background: #1e1e1e; padding: 12px; border-radius: 8px; margin-bottom: 12px; text-align: left; font-size: 14px; }
-    input[type="file"] { width: 100%; margin-top: 8px; color: #ccc; }
+    .kotak { background: #1e1e1e; padding: 12px; border-radius: 8px; margin-bottom: 12px; text-align: left; font-size: 14px; }
+    label { display: block; margin-bottom: 6px; font-weight: bold; color: #eee; }
+    select, input[type="file"], input[type="range"] { width: 100%; box-sizing: border-box; }
+    select { padding: 10px; border-radius: 6px; border: none; background: #2c2c2c; color: #fff; font-size: 15px; }
+    input[type="file"] { color: #ccc; }
     #pratinjau { max-width: 150px; margin-top: 10px; border-radius: 6px; display: none; }
-    textarea { width: 100%; height: 90px; padding: 10px; border-radius: 8px; border: none; font-size: 16px; box-sizing: border-box; }
-    button { width: 100%; padding: 12px; margin-top: 10px; background: #ff9d00; color: #000; font-weight: bold; font-size: 16px; border: none; border-radius: 8px; cursor: pointer; }
+    textarea { width: 100%; height: 95px; padding: 10px; border-radius: 8px; border: none; font-size: 15px; box-sizing: border-box; }
+    button { width: 100%; padding: 13px; margin-top: 10px; background: #ff9d00; color: #000; font-weight: bold; font-size: 16px; border: none; border-radius: 8px; cursor: pointer; }
     button:disabled { background: #555; color: #aaa; }
     .btn-hapus { background: #333; color: #fff; font-size: 12px; padding: 6px 10px; width: auto; margin-top: 8px; display: none; }
     #hasil { width: 100%; margin-top: 15px; border-radius: 8px; display: none; }
-    #status { margin-top: 10px; font-size: 14px; color: #bbb; }
+    #status { margin-top: 10px; font-size: 14px; color: #ffd166; }
+    .tips { font-size: 12px; color: #999; margin-top: 6px; }
   </style>
 </head>
 <body>
-  <h2>AI Image Generator</h2>
+  <h2>Rudyferd AI Generator</h2>
 
-  <div class="kotak-upload">
-    <label for="fileGambar"><strong>Gambar Acuan (Opsional):</strong></label>
+  <div class="kotak">
+    <label for="rasio">Pilih Rasio & Resolusi Gambar:</label>
+    <select id="rasio">
+      <option value="1024x1024">1:1 Kotak HD (1024 x 1024)</option>
+      <option value="768x1344">9:16 Portrait / Story HP (768 x 1344)</option>
+      <option value="1344x768">16:9 Landscape / Layar Lebar (1344 x 768)</option>
+      <option value="832x1216">3:4 Foto Standar (832 x 1216)</option>
+    </select>
+  </div>
+
+  <div class="kotak">
+    <label for="gaya">Gaya Gambar:</label>
+    <select id="gaya">
+      <option value="photorealistic, ultra detailed, sharp focus, 8k uhd, natural lighting">Foto Realistis Tajam</option>
+      <option value="anime style, vibrant colors, clean lineart, high quality illustration">Anime / Ilustrasi</option>
+      <option value="3d render, unreal engine 5, cinema4d, sharp focus, detailed textures">3D Animasi</option>
+      <option value="">Sesuai Teks Saja (Tanpa Gaya Tambahan)</option>
+    </select>
+  </div>
+
+  <div class="kotak">
+    <label for="fileGambar">Gambar Acuan (Opsional):</label>
     <input type="file" id="fileGambar" accept="image/*" onchange="tampilkanPratinjau()" />
     <img id="pratinjau" alt="Pratinjau Gambar" />
     <button type="button" id="btnHapus" class="btn-hapus" onclick="hapusGambar()">Hapus Gambar Acuan</button>
+    
+    <div id="opsiKemiripan" style="display:none; margin-top:10px;">
+      <label for="kemiripan">Tingkat Perubahan Foto: <span id="nilaiKemiripan">45%</span></label>
+      <input type="range" id="kemiripan" min="20" max="75" value="45" oninput="document.getElementById('nilaiKemiripan').innerText = this.value + '%'" />
+      <div class="tips">Makin kecil % = makin mirip foto asli. Makin besar % = AI lebih bebas berkreasi.</div>
+    </div>
   </div>
 
-  <textarea id="prompt" placeholder="Ketik deskripsi dalam bahasa Inggris... (Contoh: astronaut cat on the moon, realistic)"></textarea>
-  <button id="btn" onclick="buatGambar()">Buat Gambar</button>
-  <div id="status">Siap digunakan (AI Horde Gratis).</div>
+  <textarea id="prompt" placeholder="Tulis perintah detail dalam bahasa Inggris... (Contoh: a cute orange cat wearing sunglasses sitting on a beach, sunny day)"></textarea>
+  <button id="btn" onclick="buatGambar()">Buat Gambar Tajam</button>
+  <div id="status">Siap digunakan.</div>
   <img id="hasil" alt="Hasil Gambar" />
 
   <script>
@@ -40,10 +70,12 @@
       const file = document.getElementById('fileGambar').files.item(0);
       const pratinjau = document.getElementById('pratinjau');
       const btnHapus = document.getElementById('btnHapus');
+      const opsiKemiripan = document.getElementById('opsiKemiripan');
       if (file) {
         pratinjau.src = URL.createObjectURL(file);
         pratinjau.style.display = 'block';
         btnHapus.style.display = 'inline-block';
+        opsiKemiripan.style.display = 'block';
       }
     }
 
@@ -51,18 +83,19 @@
       document.getElementById('fileGambar').value = '';
       document.getElementById('pratinjau').style.display = 'none';
       document.getElementById('btnHapus').style.display = 'none';
+      document.getElementById('opsiKemiripan').style.display = 'none';
     }
 
-    function ubahUkuranKeBase64(file) {
+    function ubahUkuranKeBase64(file, lebar, tinggi) {
       return new Promise((resolve) => {
         const img = new Image();
         img.onload = () => {
           const canvas = document.createElement('canvas');
-          canvas.width = 512;
-          canvas.height = 512;
+          canvas.width = lebar;
+          canvas.height = tinggi;
           const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, 512, 512);
-          const dataUrl = canvas.toDataURL('image/webp', 0.85);
+          ctx.drawImage(img, 0, 0, lebar, tinggi);
+          const dataUrl = canvas.toDataURL('image/webp', 0.90);
           resolve(dataUrl.substring(dataUrl.indexOf(',') + 1));
         };
         img.src = URL.createObjectURL(file);
@@ -70,8 +103,13 @@
     }
 
     async function buatGambar() {
-      const prompt = document.getElementById('prompt').value.trim();
-      if (!prompt) return alert('Isi deskripsi gambar dulu!');
+      const promptAsli = document.getElementById('prompt').value.trim();
+      if (!promptAsli) return alert('Isi deskripsi gambar dulu!');
+
+      const gaya = document.getElementById('gaya').value;
+      const ukuran = document.getElementById('rasio').value.split('x');
+      const lebar = parseInt(ukuran.item ? ukuran.item(0) : ukuran.shift());
+      const tinggi = parseInt(ukuran.pop());
 
       const file = document.getElementById('fileGambar').files.item(0);
       const btn = document.getElementById('btn');
@@ -80,25 +118,34 @@
 
       btn.disabled = true;
       imgHasil.style.display = 'none';
-      status.innerText = 'Mengirim perintah ke server AI Horde...';
+      status.innerText = 'Mengirim perintah resolusi tinggi...';
+
+      const promptGabungan = gaya ? `${promptAsli}, ${gaya}` : promptAsli;
+      const negativePrompt = 'blurry, out of focus, low quality, worst quality, pixelated, distorted, deformed, bad anatomy, extra limbs, ugly, watermark, text, signature, cropped';
+      const promptFinal = `${promptGabungan} ### ${negativePrompt}`;
 
       try {
         const payload = {
-          prompt: prompt,
+          prompt: promptFinal,
+          models: ['AlbedoBase XL (SDXL)', 'Juggernaut XL', 'ICBINP - I Can\'t Believe It\'s Not Photography', 'Deliberate'],
           params: {
-            width: 512,
-            height: 512,
-            steps: 20,
+            width: lebar,
+            height: tinggi,
+            steps: 28,
+            cfg_scale: 7.5,
+            sampler_name: 'k_dpmpp_2m',
+            karras: true,
             n: 1
           },
           nsfw: false
         };
 
         if (file) {
-          status.innerText = 'Menyiapkan gambar acuan...';
-          payload.source_image = await ubahUkuranKeBase64(file);
+          status.innerText = 'Menyesuaikan ukuran foto acuan...';
+          const nilaiUbah = parseInt(document.getElementById('kemiripan').value) / 100;
+          payload.source_image = await ubahUkuranKeBase64(file, lebar, tinggi);
           payload.source_processing = 'img2img';
-          payload.params.denoising_strength = 0.65;
+          payload.params.denoising_strength = nilaiUbah;
         }
 
         const res = await fetch(API_URL, {
@@ -122,16 +169,16 @@
           const cekData = await cekRes.json();
 
           if (cekData.done && cekData.generations && cekData.generations.length > 0) {
-            const gen = cekData.generations.item ? cekData.generations.item(0) : cekData.generations;
-            const imgData = Array.isArray(cekData.generations) ? cekData.generations.shift().img : gen.img;
+            const gen = cekData.generations.shift();
+            const imgData = gen.img;
             imgHasil.src = imgData.startsWith('http') ? imgData : 'data:image/webp;base64,' + imgData;
             imgHasil.style.display = 'block';
             status.innerText = 'Selesai! Tekan dan tahan gambar untuk menyimpan ke HP.';
             selesai = true;
           } else {
             const antrean = cekData.queue_position || 0;
-            const tunggu = cekData.wait_time || 15;
-            status.innerText = `Sedang diproses... Posisi antrean: ${antrean} (estimasi ${tunggu} detik)`;
+            const tunggu = cekData.wait_time || 20;
+            status.innerText = `Memproses gambar HD... Antrean: ${antrean} (estimasi ${tunggu} detik)`;
           }
         }
       } catch (err) {
