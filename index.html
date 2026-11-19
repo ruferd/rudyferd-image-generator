@@ -3,21 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Rudyferd AI Studio</title>
+<title>Rudyferd AI Studio & Upscaler</title>
 <style>
 body{font-family:sans-serif;max-width:500px;margin:10px auto;padding:12px;background:#121212;color:#fff;text-align:center}
-.box{background:#1e1e1e;padding:10px;border-radius:8px;margin-bottom:10px;text-align:left;font-size:13px}
-.row{display:flex;gap:8px}.row>div{flex:1}
+.box{background:#1e1e1e;padding:10px;border-radius:8px;margin-bottom:10px;text-align:left;font-size:13px;border:1px solid #2a2a2a}
+.box-up{background:#19232c;border:1px solid #2b4c65}
+.row{display:flex;gap:8px;align-items:center}.row>div{flex:1}
 label{display:block;margin-bottom:4px;font-weight:bold}
 select,textarea,button{width:100%;box-sizing:border-box;border-radius:6px;border:none;font-size:14px}
 select{padding:9px;background:#2c2c2c;color:#fff}
 textarea{height:85px;padding:10px;margin-bottom:8px}
-button{padding:12px;background:#ff9d00;color:#000;font-weight:bold;font-size:15px}
+button{padding:12px;background:#ff9d00;color:#000;font-weight:bold;font-size:15px;cursor:pointer}
+.btn-up{background:#00b4d8;color:#000;margin-top:8px}
 button:disabled{background:#555;color:#aaa}
-#prev{max-width:120px;margin-top:8px;border-radius:6px;display:none}
+#prev,#prevUp{max-width:120px;margin-top:8px;border-radius:6px;display:none}
 .btn-del{background:#333;color:#fff;font-size:11px;padding:5px 8px;width:auto;margin-top:6px;display:none}
-.btn-dl{display:block;background:#28a745;color:#fff;padding:9px;margin-top:6px;border-radius:6px;text-decoration:none;font-weight:bold}
-.btn-dl-sm{display:block;background:#28a745;color:#fff;padding:6px;margin-top:5px;border-radius:5px;text-decoration:none;font-size:11px}
+.btn-dl{display:block;background:#28a745;color:#fff;padding:9px;margin-top:6px;border-radius:6px;text-decoration:none;font-weight:bold;text-align:center}
+.btn-dl-sm{display:block;background:#28a745;color:#fff;padding:6px;margin-top:5px;border-radius:5px;text-decoration:none;font-size:11px;text-align:center}
 #hasil img{width:100%;border-radius:8px;margin-top:10px}
 #riwayat{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px}
 #riwayat div{background:#262626;padding:6px;border-radius:6px;font-size:10px;color:#aaa;text-align:center}
@@ -27,13 +29,30 @@ button:disabled{background:#555;color:#aaa}
 </head>
 <body>
 <h3>Rudyferd AI Studio</h3>
+
+<div class="box box-up">
+  <label style="color:#90e0ef">✨ Alat Khusus AI Upscaler (Pertajam Foto Jadi):</label>
+  <input type="file" id="fUp" accept="image/*">
+  <img id="prevUp">
+  <button type="button" id="bDelUp" class="btn-del">Hapus Foto Upscale</button>
+  <div style="margin-top:8px">
+    <label>Skala Perbesaran Upscale:</label>
+    <select id="skalaUp">
+      <option value="4">2x Upscale (~4 MP - Tajam)</option>
+      <option value="16">4x Upscale (~16 MP - Ultra HD)</option>
+      <option value="32">6x Upscale (~32 MP - Maksimal)</option>
+    </select>
+  </div>
+  <button type="button" id="bUpscale" class="btn-up">Perbesar Gambar (AI Upscale)</button>
+</div>
+
 <div class="box row">
-  <div><label>Rasio:</label><select id="rasio"><option value="512,512">1:1 Kotak</option><option value="512,896">9:16 Story</option><option value="896,512">16:9 Lebar</option><option value="576,768">3:4 Foto</option><option value="768,576">4:3 Standar</option><option value="768,512">3:2 Kamera</option></select></div>
-  <div><label>Resolusi:</label><select id="res"><option value="2">1x (1 MP)</option><option value="4">2x (4 MP)</option><option value="8">4x (16 MP)</option><option value="11.2">6x (32 MP)</option></select></div>
+  <div><label>Rasio Baru:</label><select id="rasio"><option value="512,512">1:1 Kotak</option><option value="512,896">9:16 Story</option><option value="896,512">16:9 Lebar</option><option value="576,768">3:4 Foto</option><option value="768,576">4:3 Standar</option><option value="768,512">3:2 Kamera</option></select></div>
+  <div><label>Resolusi Baru:</label><select id="res"><option value="1">1x (1 MP)</option><option value="4">2x (4 MP)</option><option value="16">4x (16 MP)</option><option value="32">6x (32 MP)</option></select></div>
 </div>
 <div class="box"><label>Gaya:</label><select id="gaya"><option value="photorealistic, ultra detailed, sharp focus, 8k">Foto Realistis Tajam</option><option value="anime style, vibrant, clean lineart">Anime / Ilustrasi</option><option value="3d render, unreal engine 5, detailed">3D Animasi</option><option value="">Sesuai Teks Saja</option></select></div>
 <div class="box">
-  <label>Foto Karakter Acuan (Opsional):</label>
+  <label>Foto Acuan Karakter (Opsional):</label>
   <input type="file" id="fImg" accept="image/*">
   <img id="prev"><button type="button" id="bDel" class="btn-del">Hapus Foto</button>
   <div id="mBox" style="display:none;margin-top:8px">
@@ -41,13 +60,11 @@ button:disabled{background:#555;color:#aaa}
     <label style="margin-top:8px">Pilih Pekerjaan Baru:</label><select id="profesi"><option value="">-- Ketik Sendiri di Teks --</option><option value="wearing white doctor coat and stethoscope in hospital">Dokter</option><option value="wearing white chef uniform and hat in kitchen">Koki / Chef</option><option value="wearing white astronaut space suit in spaceship">Astronot</option><option value="wearing firefighter uniform and helmet">Pemadam Kebakaran</option><option value="wearing airline pilot uniform in cockpit">Pilot</option><option value="wearing black business suit in modern office">Pebisnis / CEO</option><option value="wearing police uniform on city street">Polisi</option><option value="wearing engineer vest and yellow hard hat">Insinyur Proyek</option></select>
   </div>
 </div>
-<textarea id="prm" placeholder="Tulis perintah Bahasa Indonesia..."></textarea>
-<button type="button" id="bRun">Buat Gambar</button>
-<div id="stat">Siap digunakan (Bahasa Indonesia).</div>
+<textarea id="prm" placeholder="Tulis perintah gambar baru (Bahasa Indonesia)..."></textarea>
+<button type="button" id="bRun">Buat Gambar Baru</button>
+<div id="stat">Siap digunakan.</div>
 <div id="hasil"></div>
 <div class="box" style="margin-top:15px"><label>Riwayat 10 Foto (Otomatis hapus 7 hari):</label><div id="riwayat"></div></div>
-<script src="app.js?v=19"></script>
+<script src="app.js?v=20"></script>
 </body>
 </html>
-
-
