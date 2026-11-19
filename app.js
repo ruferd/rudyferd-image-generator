@@ -132,7 +132,7 @@ $('bRun').onclick = async () => {
     if (!j.id) throw new Error(j.errors ? JSON.stringify(j.errors) : (j.message || 'Gagal antrean'));
     while (true) {
       await new Promise(r => setTimeout(r, 3500));
-      const c = await (await fetch(API + 'status/' + j.id)).json();
+      const c = await (await fetch(API + 'generate/status/' + j.id)).json();
       if (c.done && c.generations && c.generations.length) {
         $('stat').innerText = 'Meningkatkan resolusi...';
         const raw = c.generations.shift().img, hd = await upRes(raw.startsWith('http') ? raw : 'data:image/webp;base64,' + raw, s);
