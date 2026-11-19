@@ -3,35 +3,55 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rudyferd AI Image Generator</title>
+  <title>Rudyferd AI Image Studio</title>
   <style>
-    body { font-family: sans-serif; max-width: 500px; margin: 20px auto; padding: 15px; background: #121212; color: #fff; text-align: center; }
+    body { font-family: sans-serif; max-width: 520px; margin: 15px auto; padding: 15px; background: #121212; color: #fff; text-align: center; }
     .kotak { background: #1e1e1e; padding: 12px; border-radius: 8px; margin-bottom: 12px; text-align: left; font-size: 14px; }
     label { display: block; margin-bottom: 6px; font-weight: bold; color: #eee; }
     select, input[type="file"], input[type="range"] { width: 100%; box-sizing: border-box; }
-    select { padding: 10px; border-radius: 6px; border: none; background: #2c2c2c; color: #fff; font-size: 15px; }
+    select { padding: 10px; border-radius: 6px; border: none; background: #2c2c2c; color: #fff; font-size: 14px; }
+    .baris-dua { display: flex; gap: 10px; }
+    .baris-dua > div { flex: 1; }
     input[type="file"] { color: #ccc; }
-    #pratinjau { max-width: 150px; margin-top: 10px; border-radius: 6px; display: none; }
+    #pratinjau { max-width: 140px; margin-top: 10px; border-radius: 6px; display: none; }
     textarea { width: 100%; height: 95px; padding: 10px; border-radius: 8px; border: none; font-size: 15px; box-sizing: border-box; }
     button { width: 100%; padding: 13px; margin-top: 10px; background: #ff9d00; color: #000; font-weight: bold; font-size: 16px; border: none; border-radius: 8px; cursor: pointer; }
     button:disabled { background: #555; color: #aaa; }
     .btn-hapus { background: #333; color: #fff; font-size: 12px; padding: 6px 10px; width: auto; margin-top: 8px; display: none; }
-    #hasil { width: 100%; margin-top: 15px; border-radius: 8px; display: none; }
+    #galeri-hasil { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 15px; }
+    #galeri-hasil img { width: 100%; border-radius: 8px; border: 1px solid #333; }
     #status { margin-top: 10px; font-size: 14px; color: #ffd166; }
-    .tips { font-size: 12px; color: #999; margin-top: 6px; }
+    .tips { font-size: 12px; color: #aaa; margin-top: 6px; line-height: 1.4; }
+    #galeri-riwayat { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px; }
+    .item-riwayat { background: #262626; padding: 6px; border-radius: 6px; text-align: center; }
+    .item-riwayat img { width: 100%; border-radius: 4px; }
+    .item-riwayat small { display: block; font-size: 11px; color: #999; margin-top: 4px; }
   </style>
 </head>
 <body>
-  <h2>Rudyferd AI Generator</h2>
+  <h2>Rudyferd AI Studio</h2>
 
-  <div class="kotak">
-    <label for="rasio">Pilih Rasio & Resolusi Gambar:</label>
-    <select id="rasio">
-      <option value="1024x1024">1:1 Kotak HD (1024 x 1024)</option>
-      <option value="768x1344">9:16 Portrait / Story HP (768 x 1344)</option>
-      <option value="1344x768">16:9 Landscape / Layar Lebar (1344 x 768)</option>
-      <option value="832x1216">3:4 Foto Standar (832 x 1216)</option>
-    </select>
+  <div class="kotak baris-dua">
+    <div>
+      <label for="rasio">Rasio Gambar:</label>
+      <select id="rasio">
+        <option value="1024x1024">1:1 Kotak (1024x1024)</option>
+        <option value="768x1344">9:16 Portrait (768x1344)</option>
+        <option value="1344x768">16:9 Landscape (1344x768)</option>
+        <option value="832x1216">3:4 Foto (832x1216)</option>
+        <option value="1152x896">4:3 Standar (1152x896)</option>
+        <option value="1216x832">3:2 Kamera (1216x832)</option>
+      </select>
+    </div>
+    <div>
+      <label for="jumlah">Jumlah Hasil:</label>
+      <select id="jumlah">
+        <option value="1">1x Gambar</option>
+        <option value="2">2x Gambar</option>
+        <option value="4">4x Gambar</option>
+        <option value="6">6x Gambar</option>
+      </select>
+    </div>
   </div>
 
   <div class="kotak">
@@ -40,42 +60,52 @@
       <option value="photorealistic, ultra detailed, sharp focus, 8k uhd, natural lighting">Foto Realistis Tajam</option>
       <option value="anime style, vibrant colors, clean lineart, high quality illustration">Anime / Ilustrasi</option>
       <option value="3d render, unreal engine 5, cinema4d, sharp focus, detailed textures">3D Animasi</option>
-      <option value="">Sesuai Teks Saja (Tanpa Gaya Tambahan)</option>
+      <option value="">Sesuai Teks Saja</option>
     </select>
   </div>
 
   <div class="kotak">
-    <label for="fileGambar">Gambar Acuan (Opsional):</label>
+    <label for="fileGambar">Gambar Acuan Karakter (Opsional):</label>
     <input type="file" id="fileGambar" accept="image/*" onchange="tampilkanPratinjau()" />
     <img id="pratinjau" alt="Pratinjau Gambar" />
     <button type="button" id="btnHapus" class="btn-hapus" onclick="hapusGambar()">Hapus Gambar Acuan</button>
     
-    <div id="opsiKemiripan" style="display:none; margin-top:10px;">
-      <label for="kemiripan">Tingkat Perubahan Foto: <span id="nilaiKemiripan">45%</span></label>
-      <input type="range" id="kemiripan" min="20" max="75" value="45" oninput="document.getElementById('nilaiKemiripan').innerText = this.value + '%'" />
-      <div class="tips">Makin kecil % = makin mirip foto asli. Makin besar % = AI lebih bebas berkreasi.</div>
+    <div id="opsiAcuan" style="display:none; margin-top:10px;">
+      <label for="modeAcuan">Mode Peniruan Gambar Acuan:</label>
+      <select id="modeAcuan">
+        <option value="karakter">Copy Karakter ke Pose & Tempat Baru</option>
+        <option value="struktur">Ikuti Pose & Komposisi Foto Asli</option>
+      </select>
+      <div class="tips">Penting: Saat memakai foto acuan, tetap tulis ciri karakter di kotak teks (misal: "a young Indonesian man with short black hair, wearing a doctor coat in a modern hospital").</div>
     </div>
   </div>
 
-  <textarea id="prompt" placeholder="Tulis perintah detail dalam bahasa Inggris... (Contoh: a cute orange cat wearing sunglasses sitting on a beach, sunny day)"></textarea>
-  <button id="btn" onclick="buatGambar()">Buat Gambar Tajam</button>
+  <textarea id="prompt" placeholder="Tulis perintah detail dalam bahasa Inggris... (Contoh: a young man wearing a chef uniform cooking in a busy restaurant kitchen, cinematic lighting)"></textarea>
+  <button id="btn" onclick="buatGambar()">Buat Gambar</button>
   <div id="status">Siap digunakan.</div>
-  <img id="hasil" alt="Hasil Gambar" />
+  <div id="galeri-hasil"></div>
+
+  <div class="kotak" style="margin-top: 20px;">
+    <label>Riwayat 10 Foto Terakhir (Otomatis terhapus dalam 7 hari):</label>
+    <div id="galeri-riwayat"></div>
+  </div>
 
   <script>
     const API_URL = 'https:' + '//aihorde.net/api/v2/generate/async';
     const STATUS_URL = 'https:' + '//aihorde.net/api/v2/generate/status/';
+    const KUNCI_RIWAYAT = 'rudyferd_ai_riwayat_v1';
+    const BATAS_HARI_MS = 7 * 24 * 60 * 60 * 1000;
 
     function tampilkanPratinjau() {
       const file = document.getElementById('fileGambar').files.item(0);
       const pratinjau = document.getElementById('pratinjau');
       const btnHapus = document.getElementById('btnHapus');
-      const opsiKemiripan = document.getElementById('opsiKemiripan');
+      const opsiAcuan = document.getElementById('opsiAcuan');
       if (file) {
         pratinjau.src = URL.createObjectURL(file);
         pratinjau.style.display = 'block';
         btnHapus.style.display = 'inline-block';
-        opsiKemiripan.style.display = 'block';
+        opsiAcuan.style.display = 'block';
       }
     }
 
@@ -83,7 +113,7 @@
       document.getElementById('fileGambar').value = '';
       document.getElementById('pratinjau').style.display = 'none';
       document.getElementById('btnHapus').style.display = 'none';
-      document.getElementById('opsiKemiripan').style.display = 'none';
+      document.getElementById('opsiAcuan').style.display = 'none';
     }
 
     function ubahUkuranKeBase64(file, lebar, tinggi) {
@@ -95,33 +125,82 @@
           canvas.height = tinggi;
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, lebar, tinggi);
-          const dataUrl = canvas.toDataURL('image/webp', 0.90);
+          const dataUrl = canvas.toDataURL('image/webp', 0.85);
           resolve(dataUrl.substring(dataUrl.indexOf(',') + 1));
         };
         img.src = URL.createObjectURL(file);
       });
     }
 
+    function muatRiwayat() {
+      const sekarang = Date.now();
+      let data = [];
+      try {
+        data = JSON.parse(localStorage.getItem(KUNCI_RIWAYAT) || '[]');
+      } catch (e) { data = []; }
+
+      data = data.filter(item => (sekarang - item.waktu) < BATAS_HARI_MS);
+      localStorage.setItem(KUNCI_RIWAYAT, JSON.stringify(data));
+
+      const wadah = document.getElementById('galeri-riwayat');
+      wadah.innerHTML = '';
+      if (data.length === 0) {
+        wadah.innerHTML = '<div class="tips">Belum ada riwayat foto tersimpan.</div>';
+        return;
+      }
+
+      data.forEach(item => {
+        const sisaHari = Math.ceil((BATAS_HARI_MS - (sekarang - item.waktu)) / (24 * 60 * 60 * 1000));
+        const div = document.createElement('div');
+        div.className = 'item-riwayat';
+        div.innerHTML = `<img src="${item.url}" alt="Riwayat" /><small>Terhapus otomatis dlm ${sisaHari} hari</small>`;
+        wadah.appendChild(div);
+      });
+    }
+
+    function simpanKeRiwayat(urlGambar) {
+      const sekarang = Date.now();
+      let data = [];
+      try {
+        data = JSON.parse(localStorage.getItem(KUNCI_RIWAYAT) || '[]');
+      } catch (e) { data = []; }
+
+      data = data.filter(item => (sekarang - item.waktu) < BATAS_HARI_MS);
+      data.unshift({ url: urlGambar, waktu: sekarang });
+      if (data.length > 10) data = data.slice(0, 10);
+
+      try {
+        localStorage.setItem(KUNCI_RIWAYAT, JSON.stringify(data));
+      } catch (e) {
+        data = data.slice(0, 5);
+        localStorage.setItem(KUNCI_RIWAYAT, JSON.stringify(data));
+      }
+      muatRiwayat();
+    }
+
+    window.addEventListener('DOMContentLoaded', muatRiwayat);
+
     async function buatGambar() {
       const promptAsli = document.getElementById('prompt').value.trim();
       if (!promptAsli) return alert('Isi deskripsi gambar dulu!');
 
       const gaya = document.getElementById('gaya').value;
+      const jumlah = parseInt(document.getElementById('jumlah').value);
       const ukuran = document.getElementById('rasio').value.split('x');
-      const lebar = parseInt(ukuran.item ? ukuran.item(0) : ukuran.shift());
+      const lebar = parseInt(ukuran.shift());
       const tinggi = parseInt(ukuran.pop());
 
       const file = document.getElementById('fileGambar').files.item(0);
       const btn = document.getElementById('btn');
       const status = document.getElementById('status');
-      const imgHasil = document.getElementById('hasil');
+      const galeriHasil = document.getElementById('galeri-hasil');
 
       btn.disabled = true;
-      imgHasil.style.display = 'none';
-      status.innerText = 'Mengirim perintah resolusi tinggi...';
+      galeriHasil.innerHTML = '';
+      status.innerText = `Mengirim perintah (${jumlah}x gambar)...`;
 
       const promptGabungan = gaya ? `${promptAsli}, ${gaya}` : promptAsli;
-      const negativePrompt = 'blurry, out of focus, low quality, worst quality, pixelated, distorted, deformed, bad anatomy, extra limbs, ugly, watermark, text, signature, cropped';
+      const negativePrompt = 'blurry, out of focus, low quality, worst quality, pixelated, distorted, deformed, bad anatomy, extra limbs, mutated hands, ugly, watermark, text, signature, cropped, bad face';
       const promptFinal = `${promptGabungan} ### ${negativePrompt}`;
 
       try {
@@ -135,63 +214,9 @@
             cfg_scale: 7.5,
             sampler_name: 'k_dpmpp_2m',
             karras: true,
-            n: 1
+            n: jumlah
           },
           nsfw: false
         };
 
         if (file) {
-          status.innerText = 'Menyesuaikan ukuran foto acuan...';
-          const nilaiUbah = parseInt(document.getElementById('kemiripan').value) / 100;
-          payload.source_image = await ubahUkuranKeBase64(file, lebar, tinggi);
-          payload.source_processing = 'img2img';
-          payload.params.denoising_strength = nilaiUbah;
-        }
-
-        const res = await fetch(API_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': '0000000000'
-          },
-          body: JSON.stringify(payload)
-        });
-
-        const data = await res.json();
-        if (!data.id) throw new Error(data.message || 'Gagal memulai antrean.');
-
-        const jobId = data.id;
-        let selesai = false;
-
-        while (!selesai) {
-          await new Promise(r => setTimeout(r, 3000));
-          const cekRes = await fetch(STATUS_URL + jobId);
-          const cekData = await cekRes.json();
-
-          if (cekData.done && cekData.generations && cekData.generations.length > 0) {
-            const gen = cekData.generations.shift();
-            const imgData = gen.img;
-            imgHasil.src = imgData.startsWith('http') ? imgData : 'data:image/webp;base64,' + imgData;
-            imgHasil.style.display = 'block';
-            status.innerText = 'Selesai! Tekan dan tahan gambar untuk menyimpan ke HP.';
-            selesai = true;
-          } else {
-            const antrean = cekData.queue_position || 0;
-            const tunggu = cekData.wait_time || 20;
-            status.innerText = `Memproses gambar HD... Antrean: ${antrean} (estimasi ${tunggu} detik)`;
-          }
-        }
-      } catch (err) {
-        status.innerText = 'Gagal: ' + err.message;
-      } finally {
-        btn.disabled = false;
-      }
-    }
-  </script>
-</body>
-</html>
-
-        
-
-
-    
