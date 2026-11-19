@@ -1,4 +1,4 @@
-const API = 'https:' + '//aihorde.net/api/v2/generate/';
+const API = 'https:' + '//aihorde.net/api/v2/';
 const TR = 'https:' + '//api.mymemory.translated.net/get?langpair=id|en&q=';
 const EXP = 604800000;
 let fSel = null;
@@ -31,6 +31,16 @@ async function keEn(t) {
     const d = await r.json();
     return d.responseData ? d.responseData.translatedText : t;
   } catch (e) { return t; }
+}
+
+async function pilihModelAktif() {
+  try {
+    const r = await fetch(API + 'status/models?type=image');
+    const list = await r.json();
+    const bagus = ['AlbedoBase XL (SDXL)', 'Juggernaut XL', 'DreamShaper', 'Deliberate', 'ICBINP - I Can\'t Believe It\'s Not Photography', 'EpicRealism'];
+    const aktif = list.filter(m => m.count > 0 && bagus.some(b => m.name.includes(b))).map(m => m.name);
+    return aktif.length ? aktif.slice(0, 3) : [];
+  } catch (e) { return []; }
 }
 
 function openDB() {
@@ -72,7 +82,7 @@ function prepImg(f, w, h) {
       i.onload = () => {
         const c = document.createElement('canvas'); c.width = w; c.height = h;
         c.getContext('2d').drawImage(i, 0, 0, w, h);
-        const u = c.toDataURL('image/webp', 0.88);
+        const u = c.toDataURL('image/webp', 0.90);
         res(u.slice(u.indexOf(',') + 1));
       };
       i.src = e.target.result;
@@ -100,27 +110,29 @@ $('bRun').onclick = async () => {
   if (!pAsli && !prof) return alert('Isi perintah atau pilih pekerjaan!');
   const [w, h] = $('rasio').value.split(',').map(Number), s = parseFloat($('res').value), g = $('gaya').value;
   const safeW = Math.min(w, 640), safeH = Math.min(h, 640);
-  $('bRun').disabled = true; $('hasil').innerHTML = ''; $('stat').innerText = 'Menerjemahkan...';
+  $('bRun').disabled = true; $('hasil').innerHTML = ''; $('stat').innerText = 'Mencari model AI terbaik...';
   try {
-    const pEn = await keEn(pAsli), gab = [pEn, prof, g].filter(Boolean).join(', ');
-    const neg = 'blurry, low quality, distorted, duplicate, multiple people, bad anatomy, bad face, ugly, text';
+    const [pEn, modelsAktif] = await Promise.all([keEn(pAsli), pilihModelAktif()]);
+    const gab = ['human face, detailed skin texture', pEn, prof, g].filter(Boolean).join(', ');
+    const neg = 'robot, cyborg, android, mask, helmet, screen face, blurry, low quality, distorted, duplicate, bad anatomy, bad face, deformed, ugly, text, watermark';
     $('stat').innerText = 'Memproses: ' + (pEn || prof);
     const pay = {
       prompt: gab + ' ### ' + neg,
-      params: { width: safeW, height: safeH, steps: 25, cfg_scale: 7.5, sampler_name: 'k_dpmpp_2m', karras: true, n: 1 },
+      params: { width: safeW, height: safeH, steps: 28, cfg_scale: 7, sampler_name: 'k_dpmpp_2m', karras: true, n: 1 },
       nsfw: false
     };
+    if (modelsAktif.length) pay.models = modelsAktif;
     if (fSel) {
       pay.source_image = await prepImg(fSel, safeW, safeH);
       pay.source_processing = 'img2img';
-      pay.params.denoising_strength = $('mode').value === 'wajah' ? 0.65 : 0.45;
+      pay.params.denoising_strength = $('mode').value === 'wajah' ? 0.48 : 0.35;
     }
-    const r = await fetch(API + 'async', { method: 'POST', headers: { 'Content-Type': 'application/json', 'apikey': '0000000000' }, body: JSON.stringify(pay) });
+    const r = await fetch(API + 'generate/async', { method: 'POST', headers: { 'Content-Type': 'application/json', 'apikey': '0000000000' }, body: JSON.stringify(pay) });
     const j = await r.json();
     if (!j.id) throw new Error(j.errors ? JSON.stringify(j.errors) : (j.message || 'Gagal antrean'));
     while (true) {
       await new Promise(r => setTimeout(r, 3500));
-      const c = await (await fetch(API + 'status/' + j.id)).json();
+      const c = await (await fetch(API + 'generate/status/' + j.id)).json();
       if (c.done && c.generations && c.generations.length) {
         $('stat').innerText = 'Meningkatkan resolusi...';
         const raw = c.generations.shift().img, hd = await upRes(raw.startsWith('http') ? raw : 'data:image/webp;base64,' + raw, s);
@@ -132,3 +144,4 @@ $('bRun').onclick = async () => {
   } catch (e) { $('stat').innerText = 'Gagal: ' + e.message; } finally { $('bRun').disabled = false; }
 };
 loadH();
+
