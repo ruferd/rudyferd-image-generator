@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Image Generator & Editor</title>
+  <title>Rudyferd AI Image Generator</title>
   <script src="https://puter.com"></script>
   <style>
     body { font-family: sans-serif; max-width: 500px; margin: 20px auto; padding: 15px; background: #121212; color: #fff; text-align: center; }
@@ -36,11 +36,12 @@
   <script>
     function tampilkanPratinjau() {
       const input = document.getElementById('fileGambar');
+      const file = input.files.item(0);
       const pratinjau = document.getElementById('pratinjau');
       const btnHapus = document.getElementById('btnHapus');
       
-      if (input.files && input.files) {
-        pratinjau.src = URL.createObjectURL(input.files);
+      if (file) {
+        pratinjau.src = URL.createObjectURL(file);
         pratinjau.style.display = 'block';
         btnHapus.style.display = 'inline-block';
       }
@@ -55,7 +56,11 @@
     function fileKeBase64(file) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = () => resolve(reader.result.split(','));
+        reader.onload = () => {
+          const hasil = reader.result;
+          const base64Murni = hasil.substring(hasil.indexOf(',') + 1);
+          resolve(base64Murni);
+        };
         reader.onerror = error => reject(error);
         reader.readAsDataURL(file);
       });
@@ -66,6 +71,7 @@
       if (!prompt) return alert('Isi deskripsi gambar dulu!');
       
       const fileInput = document.getElementById('fileGambar');
+      const file = fileInput.files.item(0);
       const btn = document.getElementById('btn');
       const status = document.getElementById('status');
       const wadah = document.getElementById('wadah-gambar');
@@ -76,11 +82,11 @@
 
       try {
         const opsi = { model: 'gpt-image-1' };
-        if (fileInput.files && fileInput.files) {
+        if (file) {
           status.innerText = 'Membaca foto acuan & memproses gambar...';
-          const base64Data = await fileKeBase64(fileInput.files);
+          const base64Data = await fileKeBase64(file);
           opsi.input_image = base64Data;
-          opsi.input_image_mime_type = fileInput.files.type || 'image/jpeg';
+          opsi.input_image_mime_type = file.type || 'image/jpeg';
         }
 
         const gambar = await puter.ai.txt2img(prompt, opsi);
@@ -95,3 +101,4 @@
   </script>
 </body>
 </html>
+
