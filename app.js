@@ -152,7 +152,7 @@ $('bUpscale').onclick = async () => {
     params: {
       width: prep.w, height: prep.h, steps: 20, cfg_scale: 7,
       denoising_strength: 0.12, sampler_name: 'k_dpmpp_2m', karras: true, n: 1,
-      post_processing: ['RealESRGAN_x4plus']
+      post_processing: ['RealESRGAN_x4plus', 'GFPGAN']
     },
     nsfw: false
   };
